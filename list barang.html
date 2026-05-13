@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Kedai Online</title>
+  <style>
+    body { font-family: Arial; }
+    .product { border:1px solid #ccc; padding:10px; margin:10px; display:inline-block; width:200px; vertical-align:top; }
+    .btn { display:inline-block; margin-top:5px; padding:8px; text-decoration:none; border-radius:5px; }
+    .whatsapp { background:#25D366; color:white; }
+  </style>
+</head>
+<body>
+  <h1>Kedai Online</h1>
+  <div id="product-list"></div>
+
+  <script>
+    // Guna link CSV dari Google Sheet
+    fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQnnHl1vkLVbCgzH-pQrG9dRLJ6V8-eyrlhrYDRXYEHoHciN4qIFGr0ipO7xxIS5OFHGRgZJJYX2bMX/pub?output=csv")
+      .then(res => res.text())
+      .then(text => {
+        let rows = text.split("\n");
+        let html = "";
+        rows.slice(1).forEach(row => {
+          let cols = row.split(",");
+          let nama = cols[0], kategori = cols[1], harga = cols[2], status = cols[3], gambar = cols[4];
+          html += `<div class="product">
+                    <img src="${gambar}" style="width:150px"><br>
+                    <b>${nama}</b><br>
+                    Kategori: ${kategori}<br>
+                    Harga: RM${harga}<br>
+                    Status: ${status}<br>
+                    <a href="https://wa.me/60134114597?text=Hi, saya nak tanya pasal ${nama}" target="_blank" class="btn whatsapp">WhatsApp</a>
+                   </div>`;
+        });
+        document.getElementById("product-list").innerHTML = html;
+      });
+  </script>
+</body>
+</html>
