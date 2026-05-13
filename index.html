@@ -15,40 +15,39 @@
       vertical-align:top; 
       background:white;
       border-radius:8px;
+      cursor:pointer;
     }
-    .btn {
-      display:inline-block; 
-      margin-top:5px; 
-      padding:8px; 
-      text-decoration:none; 
-      border-radius:5px;
+    .detail {
+      display:none; 
+      position:fixed; 
+      top:10%; left:50%; 
+      transform:translateX(-50%); 
+      background:white; 
+      padding:20px; 
+      border:1px solid #ccc; 
+      border-radius:8px;
+      max-width:500px;
+      max-height:80%;
+      overflow:auto;
     }
-    .whatsapp { background:#25D366; color:white; }
-    #filter { margin:20px; padding:8px; }
+    .close { float:right; cursor:pointer; color:red; font-weight:bold; }
+    .detail img { width:150px; height:auto; margin:5px; }
   </style>
 </head>
 <body>
   <h1>Kedai Online</h1>
-
-  <!-- Dropdown filter -->
-  <div style="text-align:center;">
-    <label for="filter">Pilih kategori: </label>
-    <select id="filter">
-      <option value="all">Semua</option>
-      <option value="iPhone">iPhone</option>
-      <option value="Huawei">Huawei</option>
-      <option value="Samsung">Samsung</option>
-      <option value="iPad">iPad</option>
-    </select>
-  </div>
-
   <div id="product-list"></div>
+
+  <!-- Popup detail -->
+  <div id="detailBox" class="detail">
+    <span class="close" onclick="document.getElementById('detailBox').style.display='none'">X</span>
+    <div id="detailContent"></div>
+  </div>
 
   <script>
     let allProducts = [];
 
-    // Guna link CSV dari Google Sheet
-    fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQnnHl1vkLVbCgzH-pQrG9dRLJ6V8-eyrlhrYDRXYEHoHciN4qIFGr0ipO7xxIS5OFHGRgZJJYX2bMX/pub?output=csv")
+    fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQnnHl1vkLVbCgzH-pQrG9dRLJ6V8-eyrlhrYDRXYEHoHciN4qIFGr0ipO7xxIS5OFHGRgZJJYX2bMX/pub?output=csv") // link CSV Google Sheet
       .then(res => res.text())
       .then(text => {
         let rows = text.split("\n");
@@ -59,34 +58,46 @@
             kategori: cols[1],
             harga: cols[2],
             status: cols[3],
-            gambar: cols[4]
+            detail: cols[4],
+            gambar: cols[5] // semua link gambar dipisahkan dengan ;
           });
         });
-        renderProducts("all");
+        renderProducts();
       });
 
-    // Function untuk render ikut kategori
-    function renderProducts(filter) {
+    function renderProducts() {
       let html = "";
-      allProducts.forEach(p => {
-        if (filter === "all" || p.kategori === filter) {
-          html += `<div class="product">
-                    <img src="${p.gambar}" style="width:150px;height:auto;"><br>
-                    <b>${p.nama}</b><br>
-                    Kategori: ${p.kategori}<br>
-                    Harga: RM${p.harga}<br>
-                    Status: ${p.status}<br>
-                    <a href="https://wa.me/60134114597?text=Hi, saya nak tanya pasal ${p.nama}" target="_blank" class="btn whatsapp">WhatsApp</a>
-                   </div>`;
-        }
+      allProducts.forEach((p, i) => {
+        let gambarPertama = p.gambar.split(";")[0];
+        html += `<div class="product" onclick="showDetail(${i})">
+                   <img src="${gambarPertama}" style="width:150px;height:auto;"><br>
+                   <b>${p.nama}</b><br>
+                   Harga: ${p.harga}
+                 </div>`;
       });
       document.getElementById("product-list").innerHTML = html;
     }
 
-    // Event bila dropdown berubah
-    document.getElementById("filter").addEventListener("change", function() {
-      renderProducts(this.value);
-    });
+    function showDetail(index) {
+      let p = allProducts[index];
+      let gambarLinks = p.gambar.split(";");
+      let gambarHTML = "";
+      gambarLinks.forEach(g => {
+        gambarHTML += `<img src="${g}">`;
+      });
+
+      let detailHTML = `
+        <h3>${p.nama}</h3>
+        ${gambarHTML}<br>
+        Kategori: ${p.kategori}<br>
+        Harga: ${p.harga}<br>
+        Status: ${p.status}<br>
+        Detail: ${p.detail}<br>
+        <a href="https://wa.me/60134114597?text=Hi, saya nak tanya pasal ${p.nama}" target="_blank">WhatsApp</a>
+      `;
+      document.getElementById("detailContent").innerHTML = detailHTML;
+      document.getElementById("detailBox").style.display = "block";
+    }
   </script>
 </body>
 </html>
